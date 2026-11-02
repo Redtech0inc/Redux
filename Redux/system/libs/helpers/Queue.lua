@@ -80,3 +80,24 @@ function Queue:deQueue()
 
     return item
 end
+
+function Queue:capacity()
+    return self.length
+end
+
+function Queue:size()
+    return self.items
+end
+
+function Queue:totable()
+    local output = {}
+    for i = 1, self.length do
+        local item = self.ringQueue[i]
+        if type(item) == "table" then
+            if type(item.copy) == "function" then item = item:copy() end
+        end
+
+        output[i] = item
+    end
+    return output
+end

@@ -49,11 +49,16 @@ xpcall(
         _G.Graphics = graphicsEnv
 
         require("system/libs/event_system/EventManager")
+        require("system/libs/process_system/ProcessManager")
 
         _G.EventSystem = {}
         _G.EventSystem.Manager = EventManager:init()
         _G.EventSystem.Event = import(fs.combine(RootPath,"system/libs/event_system/Event.lua")).Event
         _G.EventSystem.EventConfig = import(fs.combine(RootPath,"system/libs/event_system/EventConfig.lua")).EventConfig
+
+        _G.ProcessSystem = {}
+        _G.ProcessSystem.ProcessManager = ProcessManager:init()
+        _G.ProcessSystem.Process = import(fs.combine(RootPath,"system/libs/process_system/Process.lua")).Process
 
         local width, height = term.getSize();
 
