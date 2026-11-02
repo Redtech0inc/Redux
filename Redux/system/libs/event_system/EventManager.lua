@@ -19,7 +19,7 @@ end
 
 function EventManager:registerProcess(pid, config)
     if self.configs[pid] then error("process #"..pid.." is still active")
-    elseif not Helpers.validateObj(config, EventConfig) then error("config is not a config object")
+    elseif not Helpers.validateObj(config, EventSystem.EventConfig) then error("config is not an EventConfig object")
     end
     self.configs[pid] = config
     self.queues[pid] = Queue:new(16)

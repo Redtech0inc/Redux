@@ -58,6 +58,9 @@ function Queue:deQueue()
     end
 
     local item = self.ringQueue[self.backPtr]
+    if type(item) == "table" then
+        if type(item.copy) == "function" then item = item:copy() end
+    end
     self.ringQueue[self.backPtr] = nil
 
     self.backPtr = self.backPtr + 1

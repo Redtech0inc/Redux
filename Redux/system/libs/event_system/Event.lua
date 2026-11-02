@@ -48,6 +48,8 @@ function Event.new(type, ...)
 
     obj.args = {...}
 
+    obj.copy = Event.copy;
+
     return obj
 end
 
@@ -57,6 +59,7 @@ function Event.copy(event)
     obj.type = event.type
     obj.isNative = event.isNative
     obj.args = {table.unpack(event.args)}
+    obj.copy = Event.copy;
 
     return obj
 end
