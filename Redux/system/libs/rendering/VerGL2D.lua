@@ -638,6 +638,37 @@ end
 setmetatable(obj, self)
 return obj
 end
+function ColorMatrix:loadImg(src, matrixWidth, matrixHeight)
+if not fs.exists(src) then error(src.." is not an existing nfp file") end
+if type(matrixWidth)~="number" then matrixWidth=1
+else matrixWidth=math.floor(matrixWidth) end
+if type(matrixHeight)~="number" then matrixHeight=1
+else matrixHeight=math.floor(matrixHeight) end
+local reqWidth, reqHeight=0, 0
+local fileMtx={}
+for line in io.lines(src) do
+if #line>reqWidth then reqWidth=#line end
+reqHeight=reqHeight+1
+fileMtx[reqHeight]={}
+for i=1,#line do
+local color=getColor(line:sub(i,i))
+if color then
+fileMtx[reqHeight][i]=color
+end
+end
+end
+if #fileMtx==0 then error("file '"..src.."' is empty") end
+local imgMtx={}
+for i=1,reqWidth do
+imgMtx[i]={}
+for j=1,reqHeight do
+imgMtx[i][j]=fileMtx[j][i]
+end
+end
+if matrixWidth<reqWidth then matrixWidth=reqWidth end
+if matrixHeight<reqHeight then matrixHeight=reqHeight end
+return ColorMatrix:new1(imgMtx,matrixWidth,matrixHeight)
+end
 function ColorMatrix:setMatrix0(mtx)
 if self.width==0 or self.height==0 then return end
 if type(mtx)~="table" then error("parsed argument is not a table") end
@@ -1311,35 +1342,7 @@ elseif getmetatable(img)~=ColorMatrix then error("parsed image is not a ColorMat
 self.img=img
 end
 function Sprite:loadImg(src, matrixWidth, matrixHeight)
-if not fs.exists(src) then error(src.." is not an existing nfp file") end
-if type(matrixWidth)~="number" then matrixWidth=1
-else matrixWidth=math.floor(matrixWidth) end
-if type(matrixHeight)~="number" then matrixHeight=1
-else matrixHeight=math.floor(matrixHeight) end
-local reqWidth, reqHeight=0, 0
-local fileMtx={}
-for line in io.lines(src) do
-if #line>reqWidth then reqWidth=#line end
-reqHeight=reqHeight+1
-fileMtx[reqHeight]={}
-for i=1,#line do
-local color=getColor(line:sub(i,i))
-if color then
-fileMtx[reqHeight][i]=color
-end
-end
-end
-if #fileMtx==0 then error("file '"..src.."' is empty") end
-local imgMtx={}
-for i=1,reqWidth do
-imgMtx[i]={}
-for j=1,reqHeight do
-imgMtx[i][j]=fileMtx[j][i]
-end
-end
-if matrixWidth<reqWidth then matrixWidth=reqWidth end
-if matrixHeight<reqHeight then matrixHeight=reqHeight end
-self.img=ColorMatrix:new1(imgMtx,matrixWidth,matrixHeight)
+self.img=ColorMatrix:loadImg(src, matrixWidth, matrixHeight)
 end
 function Sprite:toJson(isCompact,indents)
 local parser=JsonParser:new()
