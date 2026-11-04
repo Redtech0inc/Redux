@@ -30,6 +30,15 @@ function EventManager:unregisterProcess(pid)
     self.queues[pid] = nil
 end
 
+function EventManager:getEvents(pid)
+    if not self.queues[pid] then error("process #"..pid.." doesn't exist") end
+
+    local events = self.queues[pid]:totable()
+    self.queues[pid]:clear() --resets for next go
+
+    return events
+end
+
 function EventManager:dispatchEvent(event)
     for k, v in pairs(self.configs) do
         --TODO: make work

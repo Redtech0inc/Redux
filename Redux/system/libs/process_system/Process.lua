@@ -14,6 +14,7 @@ function Process:init(fn)
     obj.pid = ProcessSystem.ProcessManager:getNextPID()
     obj.coroutine = coroutine.create(fn)
     obj.timeout = 0
+    obj.childRoutines = {}
 
     setmetatable(obj, self)
     return obj
@@ -39,6 +40,14 @@ end
 
 function Process:getTimeout()
     return self.timeout
+end
+
+function Process:getPID()
+    return self.pid
+end
+
+function Process:addChildRoutine(pid)
+    self.childRoutines[#self.childRoutines+1] = pid
 end
 
 function Process.yield(sleepEpoch ,...)

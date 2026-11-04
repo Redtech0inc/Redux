@@ -1,5 +1,7 @@
 _G.RootPath = fs.getDir(shell.getRunningProgram())
 
+_G.outputPeriph = term;
+
 local speaker = peripheral.find("speaker")
 
 local function generateTone(frequency, duration, volume)
@@ -16,8 +18,8 @@ local function generateTone(frequency, duration, volume)
     speaker.playAudio(samples, 1)
 end
 
-term.clear()
-term.setCursorPos(1,1)
+outputPeriph.clear()
+outputPeriph.setCursorPos(1,1)
 generateTone(880, 0.08, 1)
 
 local function filterEnv(env)
@@ -60,9 +62,9 @@ xpcall(
         _G.ProcessSystem.ProcessManager = ProcessManager:init()
         _G.ProcessSystem.Process = import(fs.combine(RootPath,"system/libs/process_system/Process.lua")).Process
 
-        local width, height = term.getSize();
+        local width, height = outputPeriph.getSize();
 
-        local startupFrame = Graphics.VerGL:new1(1,1,width,height)
+        local startupFrame = Graphics.VerGL:new1(1,1,width,height,outputPeriph)
 
         local startupImg = Graphics.ColorMatrix:loadImg(fs.combine(RootPath,"system/imgs/redux.nfp"))
         startupFrame:addRenderableObject0(Graphics.Sprite:new(
@@ -74,14 +76,20 @@ xpcall(
         ))
         startupFrame:blitToBuffer()
         startupFrame:flipBuffer()
+
+        sleep(1.5)
+
+        startupFrame:removeRenderableObject1(1)
+        startupFrame:blitToBuffer()
+        startupFrame:flipBuffer()
     end,
     function(msg)
         sleep(0.1)
         generateTone(1760, 0.16, 1)
         sleep(0.1)
-        term.setTextColor(colors.red)
+        outputPeriph.setTextColor(colors.red)
         print("error during startup phase:\n"..msg)
-        term.setTextColor(colors.white)
+        outputPeriph.setTextColor(colors.white)
     end
 )
 

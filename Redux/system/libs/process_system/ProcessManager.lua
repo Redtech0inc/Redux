@@ -3,6 +3,9 @@ ProcessManager.__index = ProcessManager
 
 local pid = -1
 
+require("system/libs/helpers/Helpers")
+require("sys")
+
 function ProcessManager:init()
     local obj = {}
 
@@ -12,6 +15,20 @@ function ProcessManager:init()
 
     setmetatable(obj, self)
     return obj
+end
+
+function ProcessManager:registerProcess(process,parentPID)
+    if not Helpers.validateObj(process, Process) then return end
+    table.insert(sekf.processes,process)
+    if type(parentPID) == "number" then
+        if type(self.processes[parentPID]) == "table" then
+            self.processes[parentPID]:addChildRoutine(process:getPID())
+        end
+    end
+end
+
+function ProcessManager:terminateProcess(pid)
+    
 end
 
 function ProcessManager:getNextPID()

@@ -15,6 +15,8 @@ function Queue:new(intialCap)
     obj.items = 0
     obj.reset = false
 
+    obj.initialCap = intialCap
+
     setmetatable(obj, self)
     self.__index = self
     return obj
@@ -100,4 +102,13 @@ function Queue:totable()
         output[i] = item
     end
     return output
+end
+
+function Queue:clear()
+    self.ringQueue = {}
+    self.frontPtr = 0 --queueing place
+    self.backPtr = 1 --de-queueing place
+    self.length = self.initialCap
+    self.items = 0
+    self.reset = false
 end
