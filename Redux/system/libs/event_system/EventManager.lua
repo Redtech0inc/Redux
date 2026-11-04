@@ -30,6 +30,12 @@ function EventManager:unregisterProcess(pid)
     self.queues[pid] = nil
 end
 
+function EventManager:receivesEvent(pid,eventType,isFocused)
+    if not self.configs[pid] then error("process #"..pid.." doesn't exist") end
+
+    return self.configs[pid]:applies(eventType, isFocused)
+end
+
 function EventManager:getEvents(pid)
     if not self.queues[pid] then error("process #"..pid.." doesn't exist") end
 
@@ -37,6 +43,12 @@ function EventManager:getEvents(pid)
     self.queues[pid]:clear() --resets for next go
 
     return events
+end
+
+function EventManager:popEvent(pid)
+    if not self.queues[pid] then error("process #"..pid.." doesn't exist") end
+
+    return self.queues[pid]:deQueue()
 end
 
 function EventManager:dispatchEvent(event)

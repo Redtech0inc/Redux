@@ -3,7 +3,7 @@ Window.__index = Window
 
 local outWidth, outHeight = outputPeriph.getSize()
 
-function Window:open(pid,x,y,width,height,isFullScreen,backgroundColor,textColor)
+function Window:open(pid,x,y,width,height,isFullScreen,backgroundColor,textColor,barColor)
     local obj = {}
 
     if isFullScreen then
@@ -13,11 +13,12 @@ function Window:open(pid,x,y,width,height,isFullScreen,backgroundColor,textColor
 
     if type(width) ~= "number" then width = 5
     elseif width < 5 then width = 5
+    elseif width > outWidth then width = outWidth
     else width = math.floor(width) end
 
     if type(height) ~= "number" then height = 5
     elseif height < 5 then height = 5
-    elseif height >= outHeight and not isFullScreen then height = outHeight-1 --make sure the bar at the top is visible in non full screen mode
+    elseif height > outHeight then height = outHeight-1 --make sure the bar at the top is visible in non full screen mode
     else height = math.floor(height) end
 
     if type(x) ~= "number" then x = 1
@@ -37,9 +38,15 @@ function Window:open(pid,x,y,width,height,isFullScreen,backgroundColor,textColor
     obj.size = {
         width = width,
         height = height,
-        orgWidth = width,
-        orgHeight = height
+        orgWidth = width
     }
+
+    --only need this check cause that makes the action bar appear again
+    if height == outHeight then
+        obj.size.orgHeight = height-1
+    else
+        obj.size.orgHeight = height
+    end
 
     obj.pos = {
         x = x,
@@ -48,7 +55,8 @@ function Window:open(pid,x,y,width,height,isFullScreen,backgroundColor,textColor
 
     obj.colors = {
         bgCol = backgroundColor,
-        fgCol = textColor
+        fgCol = textColor,
+        brCol = barColor
     }
 
     obj.isFullScreen = isFullScreen and true
@@ -58,16 +66,28 @@ function Window:open(pid,x,y,width,height,isFullScreen,backgroundColor,textColor
 end
 
 function Window:setSize(width,height)
-    if width > outWidth then width = outWidth
-    elseif width < outWidth and self.isFullScreen then self.isFullScreen = false
+    if type(width) ~= "number" then return
+    elseif width > outWidth then width = outWidth
+    elseif width < 5 then width = 5
     end
 
-    if height > outHeight then height = outHeight
-    elseif height < outHeight and self.isFullScreen then self.isFullScreen = false
+
+    if type(height) ~= "number" then return
+    elseif height > outHeight then height = outHeight
+    elseif height < 5 then height = 5
     end
+
+    if height < outHeight and self.isFullScreen then self.isFullScreen = false end
+    if width < outWidth and self.isFullScreen then self.isFullScreen = false end
+    if width == outWidth and height == outHeight then self.isFullScreen = true end
 
     self.size.width = width
     self.size.height = height
+
+    if height < outHeight then --is enought to see the action bar again
+        self.size.orgWidth = width
+        self.size.orgHeight = height
+    end
 
     local VerGLWin = self.gfx:getWindow()
     VerGLWin:setBuffer(Graphics.VerGLBuffer:new(width,height,self.colors.bgCol,self.colors.fgCol))
@@ -77,8 +97,7 @@ function Window:setFullScreen(fullScreen)
     if self.isFullScreen and not fullScreen then
         self:setSize(self.size.orgWidth, self.size.orgHeight) --reset to init size
     elseif fullScreen and not self.isFullScreen then
-        self:setSize(outHeight, outWidth) --set to full size
-        self.isFullScreen = true
+        self:setSize(outWidth, outHeight) --set to full size
     end
 end
 
@@ -90,9 +109,41 @@ function Window:applyEvents(events)
     for i=1,#events do
         local event = events[i]
         if event.type == "mouse_click" then
-            if event.args[2] == self.pos.y then --is in top bar
+            if event.args[3] == self.pos.y then --is in top bar
+                if event.args[2] == self.size.width then
+                    ProcessSystem.Manager:terminateProcess(self.pid)
+                end
                 --TODO: make work
             end
         end
     end
+end
+
+function Window:getProcess() --utility method for using this handle to get the process
+    return ProcessSystem.Manager:getProcess(self.pid)
+end
+
+function Window:getEvents() --another utility method for using this handle to get all events
+    local events = EventSystem.Manager:getEvents(self.pid)
+    self:applyEvents(events)
+    return events
+end
+
+function Window:stop()
+    ProcessSystem.Manager:terminateProcess(self.pid)
+end
+
+function Window:render()
+    self.gfx:blitToBuffer()
+    local buffer = self.gfx:getWindow():getBuffer()
+
+    for i=1,self.size.width do
+        if i == self.size.width then
+            buffer:blit(1,1,colors.red,colors.white,"x")
+        else
+            buffer:blit(i,1,self.colors.brCol)
+        end
+    end
+
+    self.gfx:flipBuffer()
 end

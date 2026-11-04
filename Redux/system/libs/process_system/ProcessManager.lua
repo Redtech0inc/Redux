@@ -19,7 +19,7 @@ end
 
 function ProcessManager:registerProcess(process,parentPID)
     if not Helpers.validateObj(process, Process) then return end
-    table.insert(sekf.processes,process)
+    table.insert(self.processes,process)
     if type(parentPID) == "number" then
         if type(self.processes[parentPID]) == "table" then
             self.processes[parentPID]:addChildRoutine(process:getPID())
@@ -27,8 +27,26 @@ function ProcessManager:registerProcess(process,parentPID)
     end
 end
 
+function ProcessManager:getProcess(pid)
+    if not self.processes[pid] then error("process #"..pid.." doesn't exist") end
+
+    return self.processes[pid]
+end
+
 function ProcessManager:terminateProcess(pid)
-    
+    if pid == 0 then error("cannot kill process #0, since that is Redux's main process")
+    elseif not self.processes[pid] then error("process #"..pid.." doesn't exist")
+    end
+
+    local process = self.processes[pid]
+
+    local childRoutines = process.childRoutines
+    for i=1,#childRoutines do
+        if self.processes[childRoutines[i]] then self:terminateProcess(childRoutines[i]) end
+    end
+
+    process:terminate(pid)
+    self.processes[pid] = nil --terminated
 end
 
 function ProcessManager:getNextPID()

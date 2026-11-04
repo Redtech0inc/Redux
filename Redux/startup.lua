@@ -59,7 +59,7 @@ xpcall(
         _G.EventSystem.EventConfig = import(fs.combine(RootPath,"system/libs/event_system/EventConfig.lua")).EventConfig
 
         _G.ProcessSystem = {}
-        _G.ProcessSystem.ProcessManager = ProcessManager:init()
+        _G.ProcessSystem.Manager = ProcessManager:init()
         _G.ProcessSystem.Process = import(fs.combine(RootPath,"system/libs/process_system/Process.lua")).Process
 
         local width, height = outputPeriph.getSize();

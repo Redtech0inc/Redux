@@ -7,14 +7,17 @@ Process.Status.READY = "ready"
 Process.Status.WAITING = "waiting"
 Process.Status.DEAD = "dead"
 
-function Process:init(fn)
+function Process:init(fn,terminationCallBack)
     local obj = {}
 
+    if type(terminationCallBack) ~= "function" then terminationCallBack = nil end
+
     obj.status = Process.Status.READY
-    obj.pid = ProcessSystem.ProcessManager:getNextPID()
+    obj.pid = ProcessSystem.Manager:getNextPID()
     obj.coroutine = coroutine.create(fn)
     obj.timeout = 0
     obj.childRoutines = {}
+    obj.killCallback = terminationCallBack
 
     setmetatable(obj, self)
     return obj
@@ -48,6 +51,10 @@ end
 
 function Process:addChildRoutine(pid)
     self.childRoutines[#self.childRoutines+1] = pid
+end
+
+function Process:terminate(pid)
+    if self.killCallback then self.killCallback(pid) end
 end
 
 function Process.yield(sleepEpoch ,...)
