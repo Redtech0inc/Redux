@@ -2,67 +2,65 @@ ProcessManager = {}
 ProcessManager.__index = ProcessManager
 
 local pid = -1
+local processes = {}
+local minProcessId = 0
+local maxProcessId = 0
 
 require("system/libs/helpers/Helpers")
-require("sys")
 
-function ProcessManager:init()
-    local obj = {}
-
-    obj.processes = {}
-    obj.minProcessId = 0
-    obj.maxProcessId = 0
-
-    setmetatable(obj, self)
-    return obj
-end
-
-function ProcessManager:registerProcess(process,parentPID)
+function ProcessManager.registerProcess(process,parentPID)
     if not Helpers.validateObj(process, Process) then return end
-    table.insert(self.processes,process)
+    table.insert(processes,process)
+
+    local pid = process:getPID()
+
+    if pid > maxProcessId then maxProcessId = pid
+    elseif pid < minProcessId then minProcessId = pid
+    end
+
     if type(parentPID) == "number" then
-        if type(self.processes[parentPID]) == "table" then
-            self.processes[parentPID]:addChildRoutine(process:getPID())
+        if type(processes[parentPID]) == "table" then
+            processes[parentPID]:addChildRoutine(pid)
         end
     end
 end
 
-function ProcessManager:getProcess(pid)
-    if not self.processes[pid] then error("process #"..pid.." doesn't exist") end
+function ProcessManager.getProcess(pid)
+    if type(pid) ~= "number" then error(pid.." has to be a number") end
 
-    return self.processes[pid]
+    return processes[pid]
 end
 
-function ProcessManager:terminateProcess(pid)
+function ProcessManager.terminateProcess(pid)
     if pid == 0 then error("cannot kill process #0, since that is Redux's main process")
-    elseif not self.processes[pid] then error("process #"..pid.." doesn't exist")
+    elseif not processes[pid] then error("process #"..pid.." doesn't exist")
     end
 
-    local process = self.processes[pid]
+    local process = processes[pid]
 
     local childRoutines = process.childRoutines
     for i=1,#childRoutines do
-        if self.processes[childRoutines[i]] then self:terminateProcess(childRoutines[i]) end
+        if processes[childRoutines[i]] then ProcessManager.terminateProcess(childRoutines[i]) end
     end
 
     process:terminate(pid)
-    self.processes[pid] = nil --terminated
+    processes[pid] = nil --terminated
 end
 
-function ProcessManager:getNextPID()
+function ProcessManager.getNextPID()
     pid = pid + 1
     return pid
 end
 
-function ProcessManager:run()
-    parallel.waitForAll(function ()
+function ProcessManager.run()
+    parallel.waitForAll(function()
         while true do
             local event = {os.pullEventRaw()}
             EventSystem.Manager:dispatchEvent(Event.new(event[1], table.unpack(event, 2)))
         end
     end,function ()
         while true do
-            for pid, process in pairs(self.processes) do
+            for pid, process in pairs(processes) do
                 if process:getStatus() == ProcessSystem.Process.Status.WAITING then
                     if os.epoch("utc") >= process:getTimeout() then
                         process:setStatus(ProcessSystem.Process.Status.READY)
@@ -88,10 +86,11 @@ function ProcessManager:run()
                     else process:setStatus(ProcessSystem.Process.Status.READY)
                     end
 
-                    EventSystem.Manager.dispatchEvent(Event.new("process_yielded", pid, process))
+                    if pid ~= 0 then EventSystem.Manager.dispatchEvent(Event.new("process_yielded", pid, process)) end
                 end
                 if process:getStatus() == ProcessSystem.Process.Status.DEAD then
-                    self.processes[pid] = nil
+                    EventSystem.Manager.dispatchEvent(Event.new("process_dead", pid, process)) --0 doesn't matter here cause if that stops your pc shuts down
+                    processes[pid] = nil
                 end
                 sleep(0.1)
             end

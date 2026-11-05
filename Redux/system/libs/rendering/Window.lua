@@ -1,12 +1,18 @@
 Window = {}
 Window.__index = Window
 
+local function toboolean(value)
+    if value then return true end
+    return false
+end
+
 local outWidth, outHeight = outputPeriph.getSize()
 
 function Window:open(pid,x,y,width,height,isFullScreen,backgroundColor,textColor,barColor)
     local obj = {}
 
-    if isFullScreen then
+    if width == outWidth and height == outHeight then isFullScreen = true
+    elseif isFullScreen then
         width = outWidth
         height = outHeight
     end
@@ -22,13 +28,11 @@ function Window:open(pid,x,y,width,height,isFullScreen,backgroundColor,textColor
     else height = math.floor(height) end
 
     if type(x) ~= "number" then x = 1
-    elseif x < 1 then x = 1
-    elseif x > outWidth then x = 1
+    elseif x < 1 or x > outWidth then x = 1
     else x = math.floor(x) end
 
     if type(y) ~= "number" then y = 1
-    elseif y < 1 then y = 1
-    elseif y > outHeight then y = 1
+    elseif y < 1 or y > outHeight then y = 1
     else y = math.floor(y) end
 
     obj.pid = pid
@@ -59,7 +63,7 @@ function Window:open(pid,x,y,width,height,isFullScreen,backgroundColor,textColor
         brCol = barColor
     }
 
-    obj.isFullScreen = isFullScreen and true
+    obj.isFullScreen = toboolean(isFullScreen)
 
     setmetatable(obj, self)
     return obj

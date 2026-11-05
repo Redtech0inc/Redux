@@ -52,6 +52,7 @@ xpcall(
 
         require("system/libs/event_system/EventManager")
         require("system/libs/process_system/ProcessManager")
+        require("system/apis/WinAPI")
 
         _G.EventSystem = {}
         _G.EventSystem.Manager = EventManager:init()
@@ -59,8 +60,11 @@ xpcall(
         _G.EventSystem.EventConfig = import(fs.combine(RootPath,"system/libs/event_system/EventConfig.lua")).EventConfig
 
         _G.ProcessSystem = {}
-        _G.ProcessSystem.Manager = ProcessManager:init()
+        _G.ProcessSystem.Manager = ProcessManager
         _G.ProcessSystem.Process = import(fs.combine(RootPath,"system/libs/process_system/Process.lua")).Process
+
+        _G.Redux = {}
+        _G.Redux.WinAPI = WinAPI
 
         local width, height = outputPeriph.getSize();
 
@@ -84,9 +88,9 @@ xpcall(
         startupFrame:flipBuffer()
     end,
     function(msg)
-        sleep(0.1)
+        sleep(0.5)
         generateTone(1760, 0.16, 1)
-        sleep(0.1)
+        sleep(0.5)
         outputPeriph.setTextColor(colors.red)
         print("error during startup phase:\n"..msg)
         outputPeriph.setTextColor(colors.white)

@@ -7,16 +7,19 @@ Process.Status.READY = "ready"
 Process.Status.WAITING = "waiting"
 Process.Status.DEAD = "dead"
 
-function Process:init(fn,terminationCallBack)
+function Process:init(fn, terminationCallBack)
     local obj = {}
 
     if type(terminationCallBack) ~= "function" then terminationCallBack = nil end
 
-    obj.status = Process.Status.READY
     obj.pid = ProcessSystem.Manager:getNextPID()
+
+    obj.status = Process.Status.READY
     obj.coroutine = coroutine.create(fn)
     obj.timeout = 0
+
     obj.childRoutines = {}
+
     obj.killCallback = terminationCallBack
 
     setmetatable(obj, self)

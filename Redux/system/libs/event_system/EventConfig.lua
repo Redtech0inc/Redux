@@ -32,8 +32,18 @@ function EventConfig:setOnFocused(typeName, onFocues)
     return self
 end
 
+function EventConfig:removeType(typeName)
+    if self.final then return self end
+    self.eventTypes[typeName] = nil
+    self.onlyOnFocus[typeName] = nil
+end
+
 function EventConfig:finish()
     self.final = true
+end
+
+function EventConfig:isFinished()
+    return self.final
 end
 
 --logic stuff
