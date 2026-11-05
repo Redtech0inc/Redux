@@ -11,7 +11,7 @@ function WinAPI.builder()
     return WinBuilder:init()
 end
 
-function WinAPI.retreive(x, y, width, height, eventConfig, runnable, killCallback, parentPID, isFullScreen, backgroundCol, textCol, actionBarCol)
+function WinAPI.retrieve(x, y, width, height, eventConfig, runnable, killCallback, parentPID, isFullScreen, backgroundCol, textCol, actionBarCol)
     local process = Process:init(runnable, killCallback)
 
     if ProcessSystem.Manager.getProcess(parentPID) then ProcessSystem.Manager.registerProcess(process,parentPID)
