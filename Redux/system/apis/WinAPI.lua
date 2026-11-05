@@ -31,7 +31,7 @@ end
 WinBuilder = {}
 WinBuilder.__index = WinBuilder
 
-local outWidth, outHeight = outputPeriph.getSize()
+local outWidth, outHeight = outputPeripheral.getSize()
 
 function WinBuilder:init()
     local obj = {}

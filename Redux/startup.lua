@@ -1,6 +1,6 @@
 _G.RootPath = fs.getDir(shell.getRunningProgram())
 
-_G.outputPeriph = term;
+_G.outputPeripheral = term;
 
 local speaker = peripheral.find("speaker")
 
@@ -18,8 +18,8 @@ local function generateTone(frequency, duration, volume)
     speaker.playAudio(samples, 1)
 end
 
-outputPeriph.clear()
-outputPeriph.setCursorPos(1,1)
+outputPeripheral.clear()
+outputPeripheral.setCursorPos(1,1)
 generateTone(880, 0.08, 1)
 
 local function filterEnv(env)
@@ -66,9 +66,9 @@ xpcall(
         _G.Redux = {}
         _G.Redux.WinAPI = WinAPI
 
-        local width, height = outputPeriph.getSize();
+        local width, height = outputPeripheral.getSize();
 
-        local startupFrame = Graphics.VerGL:new1(1,1,width,height,outputPeriph)
+        local startupFrame = Graphics.VerGL:new1(1,1,width,height,outputPeripheral)
 
         local startupImg = Graphics.ColorMatrix:loadImg(fs.combine(RootPath,"system/imgs/redux.nfp"))
         startupFrame:addRenderableObject0(Graphics.Sprite:new(
@@ -91,9 +91,9 @@ xpcall(
         sleep(0.5)
         generateTone(1760, 0.16, 1)
         sleep(0.5)
-        outputPeriph.setTextColor(colors.red)
+        outputPeripheral.setTextColor(colors.red)
         print("error during startup phase:\n"..msg)
-        outputPeriph.setTextColor(colors.white)
+        outputPeripheral.setTextColor(colors.white)
     end
 )
 

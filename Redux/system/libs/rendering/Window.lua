@@ -6,7 +6,7 @@ local function toboolean(value)
     return false
 end
 
-local outWidth, outHeight = outputPeriph.getSize()
+local outWidth, outHeight = outputPeripheral.getSize()
 
 function Window:open(pid,x,y,width,height,isFullScreen,backgroundColor,textColor,barColor)
     local obj = {}
@@ -37,7 +37,7 @@ function Window:open(pid,x,y,width,height,isFullScreen,backgroundColor,textColor
 
     obj.pid = pid
 
-    obj.gfx = Graphics.VerGL:new1(x,y,width,height,outputPeriph,backgroundColor,textColor)
+    obj.gfx = Graphics.VerGL:new1(x,y,width,height,outputPeripheral,backgroundColor,textColor)
 
     obj.size = {
         width = width,
@@ -88,7 +88,7 @@ function Window:setSize(width,height)
     self.size.width = width
     self.size.height = height
 
-    if height < outHeight then --is enought to see the action bar again
+    if height < outHeight then --is enough to see the action bar again
         self.size.orgWidth = width
         self.size.orgHeight = height
     end

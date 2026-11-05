@@ -24,9 +24,9 @@ function EventConfig:addType(typeName)
     return self
 end
 
-function EventConfig:setOnFocused(typeName, onFocues)
+function EventConfig:setOnFocused(typeName, onFocused)
     if type(typeName) ~= "string" or self.final or not self.eventTypes[typeName] then return self end
-    if onFocues then self.onlyOnFocus[typeName] = true
+    if onFocused then self.onlyOnFocus[typeName] = true
     else self.onlyOnFocus[typeName] = nil
     end
     return self
