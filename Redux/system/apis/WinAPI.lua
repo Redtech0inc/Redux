@@ -43,6 +43,7 @@ function WinBuilder:init()
     obj.height = 5
 
     obj.isFullScreen = false
+    obj.isFocusedUponOpening = false
 
     obj.bgColor = colors.black
     obj.fgColor = colors.white
@@ -83,14 +84,14 @@ function WinBuilder:setSize(width,height)
 
     self.width = width
     self.height = height
-
-    if width == outWidth and height == outHeight then self.isFullScreen = true
-    else self.isFullScreen = false
-    end
 end
 
 function WinBuilder:setFullScreen(isFullscreen)
     self.isFullScreen = toboolean(isFullscreen)
+end
+
+function WinBuilder:setFocusedUponOpening(focusedUponOpening)
+    self.isFocusedUponOpening = toboolean(focusedUponOpening)
 end
 
 function WinBuilder:setColors(backgroundColor, textColor, actionBarColor)
@@ -114,6 +115,7 @@ end
 
 function WinBuilder:build(runnable,parentPID)
     if type(runnable) ~= "function" then error("runnable has to be your window's main code") end
+
     local process = Process:init(runnable, self.killCallback)
 
     if ProcessSystem.Manager.getProcess(parentPID) then ProcessSystem.Manager.registerProcess(process,parentPID)
@@ -122,5 +124,10 @@ function WinBuilder:build(runnable,parentPID)
 
     EventSystem.Manager.registerProcess(process:getPID(), self.eventConfig)
 
-    return Window:open(process:getPID(), self.x, self.y, self.width, self.height, self.isFullScreen, self.bgColor, self.fgColor, self.barColor)
+    local window = Window:open(process:getPID(), self.x, self.y, self.width, self.height, self.isFullScreen, self.bgColor, self.fgColor, self.barColor)
+    process:addToLocalScope("Window",window)
+
+    if self.isFocusedUponOpening then ProcessSystem.Manager.setFocused(process:getPID()) end
+
+    return window
 end

@@ -3,9 +3,6 @@ EventManager.__index = EventManager
 
 require("system/libs/helpers/Helpers")
 require("system/libs/helpers/Queue")
-require("system/libs/event_system/Event")
-require("system/libs/event_system/EventConfig")
-require("system/libs/process_system/ProcessManager")
 
 local configs = {}
 local queues = {}
@@ -45,7 +42,13 @@ function EventManager.popEvent(pid)
 end
 
 function EventManager.dispatchEvent(event)
-    for k, v in pairs(configs) do
-        --TODO: make work
+    for pid, config in pairs(configs) do
+        if config:applies(event.type, ProcessSystem.Manager.isFocused(pid)) then
+            queues[pid]:queue(event)
+        end
     end
+end
+
+function EventManager.convertNativeToReduxEvent(eventData)
+    return EventSystem.Event.new(eventData[1], table.unpack(eventData,2))
 end

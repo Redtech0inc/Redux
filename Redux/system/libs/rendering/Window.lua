@@ -11,12 +11,6 @@ local outWidth, outHeight = outputPeripheral.getSize()
 function Window:open(pid,x,y,width,height,isFullScreen,backgroundColor,textColor,barColor)
     local obj = {}
 
-    if width == outWidth and height == outHeight then isFullScreen = true
-    elseif isFullScreen then
-        width = outWidth
-        height = outHeight
-    end
-
     if type(width) ~= "number" then width = 5
     elseif width < 5 then width = 5
     elseif width > outWidth then width = outWidth
@@ -42,15 +36,9 @@ function Window:open(pid,x,y,width,height,isFullScreen,backgroundColor,textColor
     obj.size = {
         width = width,
         height = height,
-        orgWidth = width
+        orgWidth = width,
+        orgHeight = height
     }
-
-    --only need this check cause that makes the action bar appear again
-    if height == outHeight then
-        obj.size.orgHeight = height-1
-    else
-        obj.size.orgHeight = height
-    end
 
     obj.pos = {
         x = x,
@@ -65,8 +53,15 @@ function Window:open(pid,x,y,width,height,isFullScreen,backgroundColor,textColor
 
     obj.isFullScreen = toboolean(isFullScreen)
 
+    obj.windowCollider = Graphics.Collider:new2D(Vector2:new(obj.pos.x,obj.pos.y),Vector2:new(0,0),Vector2:new(obj.size.width, obj.size.height))
+
     setmetatable(obj, self)
     return obj
+end
+
+function Window:close()
+    ProcessSystem.Manager.terminateProcess(self.pid)
+    self = nil
 end
 
 function Window:setSize(width,height)
@@ -75,7 +70,6 @@ function Window:setSize(width,height)
     elseif width < 5 then width = 5
     end
 
-
     if type(height) ~= "number" then return
     elseif height > outHeight then height = outHeight
     elseif height < 5 then height = 5
@@ -83,7 +77,6 @@ function Window:setSize(width,height)
 
     if height < outHeight and self.isFullScreen then self.isFullScreen = false end
     if width < outWidth and self.isFullScreen then self.isFullScreen = false end
-    if width == outWidth and height == outHeight then self.isFullScreen = true end
 
     self.size.width = width
     self.size.height = height
@@ -113,9 +106,15 @@ function Window:applyEvents(events)
     for i=1,#events do
         local event = events[i]
         if event.type == "mouse_click" then
-            if event.args[3] == self.pos.y then --is in top bar
-                if event.args[2] == self.size.width then
-                    ProcessSystem.Manager:terminateProcess(self.pid)
+            local x,y = event.args[2], event.args[3]
+
+            if self.windowCollider:isCollidingWithPoint({x=x,y=y}) then
+                ProcessSystem.Manager.setFocused(self.pid)
+            end
+
+            if y == self.pos.y then --is in top bar
+                if x == self.size.width then
+                    ProcessSystem.Manager.terminateProcess(self.pid)
                 end
                 --TODO: make work
             end
@@ -124,28 +123,30 @@ function Window:applyEvents(events)
 end
 
 function Window:getProcess() --utility method for using this handle to get the process
-    return ProcessSystem.Manager:getProcess(self.pid)
+    return ProcessSystem.Manager.getProcess(self.pid)
 end
 
 function Window:getEvents() --another utility method for using this handle to get all events
-    local events = EventSystem.Manager:getEvents(self.pid)
+    local events = EventSystem.Manager.getEvents(self.pid)
     self:applyEvents(events)
     return events
 end
 
 function Window:stop()
-    ProcessSystem.Manager:terminateProcess(self.pid)
+    ProcessSystem.Manager.terminateProcess(self.pid)
 end
 
 function Window:render()
     self.gfx:blitToBuffer()
     local buffer = self.gfx:getWindow():getBuffer()
 
-    for i=1,self.size.width do
-        if i == self.size.width then
-            buffer:blit(1,1,colors.red,colors.white,"x")
-        else
-            buffer:blit(i,1,self.colors.brCol)
+    if not self.isFullScreen then
+        for i=1,self.size.width do
+            if i == self.size.width then
+                buffer:blit(1,1,colors.red,colors.white,"x")
+            else
+                buffer:blit(i,1,self.colors.brCol)
+            end
         end
     end
 

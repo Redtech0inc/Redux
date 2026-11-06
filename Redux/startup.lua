@@ -32,7 +32,6 @@ local function filterEnv(env)
     return output
 end
 
-
 local function import(fileName)
     local env = setmetatable({},{__index = _G})
     local func = loadfile(fileName,"t",env)
@@ -55,7 +54,7 @@ xpcall(
         require("system/apis/WinAPI")
 
         _G.EventSystem = {}
-        _G.EventSystem.Manager = EventManager:init()
+        _G.EventSystem.Manager = EventManager
         _G.EventSystem.Event = import(fs.combine(RootPath,"system/libs/event_system/Event.lua")).Event
         _G.EventSystem.EventConfig = import(fs.combine(RootPath,"system/libs/event_system/EventConfig.lua")).EventConfig
 
@@ -86,6 +85,23 @@ xpcall(
         startupFrame:removeRenderableObject1(1)
         startupFrame:blitToBuffer()
         startupFrame:flipBuffer()
+
+        local process = ProcessSystem.Process:init(function(p)
+            while true do
+                outputPeripheral.clear()
+                outputPeripheral.setCursorPos(1,1)
+                print(os.date("%c"),"from #"..p:getPID())
+                sleep(1)
+            end
+        end,function (p,fnEnv)
+            print("terminated #"..p:getPID())
+        end)
+
+        --WinAPI.builder():set
+
+        ProcessManager.registerProcess(process)
+
+        ProcessManager.run()
     end,
     function(msg)
         sleep(0.5)
